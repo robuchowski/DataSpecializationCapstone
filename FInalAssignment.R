@@ -33,12 +33,11 @@ set.seed(4114)
 
 sampleSize = 0.05
 
-# sample all three data sets
+
 sampleBlogs <- sample(blogs, length(blogs) * sampleSize, replace = FALSE)
 sampleNews <- sample(news, length(news) * sampleSize, replace = FALSE)
 sampleTwitter <- sample(twitter, length(twitter) * sampleSize, replace = FALSE)
 
-# remove all non-English characters from the sampled data
 sampleBlogs <- iconv(sampleBlogs, "latin1", "ASCII", sub = "")
 sampleNews <- iconv(sampleNews, "latin1", "ASCII", sub = "")
 sampleTwitter <- iconv(sampleTwitter, "latin1", "ASCII", sub = "")
@@ -55,21 +54,19 @@ sampleBlogs <- removeOutliers(sampleBlogs)
 sampleNews <- removeOutliers(sampleNews)
 sampleTwitter <- removeOutliers(sampleTwitter)
 
-# combine all three data sets into a single data set
+
 sampleData <- c(sampleBlogs, sampleNews, sampleTwitter)
 
-# get number of lines and words from the sample data set
+
 sampleDataLines <- length(sampleData)
 sampleDataWords <- sum(stri_count_words(sampleData))
 print("Create sample data set")
 print(paste0("Number of lines:  ", format(sampleDataLines, big.mark = ",")))
 print(paste0("Number of words: ", format(sampleDataWords, big.mark = ",")))
 
-# remove variables no longer needed to free up memory
 rm(blogs, news, twitter, sampleBlogs, sampleNews, sampleTwitter)
 rm(removeOutliers)
 
-# load bad words file
 badWordsURL <- "http://www.idevelopment.info/data/DataScience/uploads/full-list-of-bad-words_text-file_2018_07_30.zip"
 badWordsFile <- "full-list-of-bad-words_text-file_2018_07_30.txt"
 
@@ -92,27 +89,20 @@ sampleData <- gsub("(f|ht)tp(s?)://(.*)[.][a-z]+", "", sampleData, ignore.case =
 sampleData <- gsub("\\S+[@]\\S+", "", sampleData, ignore.case = FALSE, perl = TRUE)
 sampleData <- gsub("@[^\\s]+", "", sampleData, ignore.case = FALSE, perl = TRUE)
 sampleData <- gsub("#[^\\s]+", "", sampleData, ignore.case = FALSE, perl = TRUE)
-
-# remove ordinal numbers
 sampleData <- gsub("[0-9](?:st|nd|rd|th)", "", sampleData, ignore.case = FALSE, perl = TRUE)
 
-# remove punctuation
 sampleData <- gsub("[^\\p{L}'\\s]+", "", sampleData, ignore.case = FALSE, perl = TRUE)
 
-# remove punctuation (leaving ')
 sampleData <- gsub("[.\\-!]", " ", sampleData, ignore.case = FALSE, perl = TRUE)
 
-# trim leading and trailing whitespace
 sampleData <- gsub("^\\s+|\\s+$", "", sampleData)
 sampleData <- stripWhitespace(sampleData)
 
-# write sample data set to disk
 sampleDataFileName <- "en_US.sample.txt"
 con <- file(sampleDataFileName, open = "w")
 writeLines(sampleData, con)
 close(con)
 
-# remove variables no longer needed to free up memory
 rm(badWordsURL, badWordsFile, con, sampleDataFileName, profanity)
 
 corpus <- corpus(sampleData)
@@ -152,25 +142,24 @@ tokenFrequency <- function(corpus, n = 1, rem_stopw = NULL) {
         return(corpus)
 }
 
-# get top 3 words to initiate the next word prediction app
+
 startWord <- word(corpus$documents$texts, 1)  # get first word for each document
 startWord <- tokenFrequency(startWord, n = 1, NULL)  # determine most popular start words
 startWordPrediction <- startWord$token[1:3]  # select top 3 words to start word prediction app
 saveRDS(startWordPrediction, "start-word-prediction2.RData")
 
-# bigram
 bigram <- tokenFrequency(corpus, n = 2, NULL)
 write.csv(bigram, "bigram3.csv")
 bigram <- read.csv("bigram3.csv", stringsAsFactors = F)
 saveRDS( bigram, "bigram.RData")
 
-# trigram
+
 trigram <- tokenFrequency(corpus, n = 3, NULL)
 trigram <- trigram %>% filter(n > 1)
 write.csv(trigram, "trigram.csv")
 trigram <-read.csv("trigram.csv", stringsAsFactors = F)
 saveRDS(trigram, "trigram.RData")
-# quadgram
+
 quadgram <- tokenFrequency(corpus, n = 4, NULL)
 quadgram <- quadgram %>% filter(n > 1)
 write.csv(quadgram, "quadgram.csv")
