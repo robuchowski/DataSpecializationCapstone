@@ -1,0 +1,89 @@
+---
+title: "Data Science Capstone Project Week 2"
+author: "Ryan Obuchowski"
+date: "1/22/2020"
+output: html_document
+---
+
+# Assignment Overview
+
+The Coursera Data Science Specialization intends to teach the basic skills involved with being a data scientist. The goal in this Capstone project is to give the experience of what it truly means to be a data scientist. 
+It is common in any Data Science project to get messy data, a vague question, and little instruction on how to analyze the data.
+The project consists for developing a predicitve model of text using a Swiftkey Company Dataset.
+The main steps of this assignment consists of downloading the dataset, cleaning the data, and doing some basic analysis. THe major feautres of the datasets are shown in tables and plots, and plans for creating a prediciton algorithm are discussed.
+
+# Load Necessary Packages
+```{r}
+library(ggplot2)
+library(ngram)
+library(NLP)
+library(tm)
+library(magrittr)
+library(stringi)
+```
+# Data Import and Manipulation
+
+The large data file is downloaded from https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip and then unzipped. The unzipped file contains text data in English, German, finnish, and Russian. We are only going to look at the English data. 
+
+```{r}
+setwd("~/Yale Papers/Data Analysis/Data Science Capstone/final/en_US")
+blogs <- "en_US.blogs.txt"
+news <- "en_US.news.txt"
+twitter <- "en_US.twitter.txt"
+
+
+
+blog.line <- readLines(blogs, encoding = "UTF-8", skipNul = TRUE)
+news.line <- readLines(news, encoding = "UTF-8", skipNul = TRUE)
+twitter.line <- readLines(twitter, encoding = "UTF-8", skipNul = TRUE)
+
+
+
+blog.word.count <- stri_count_words(blog.line)
+news.word.count <- stri_count_words(news.line)
+twitter.word.count <- stri_count_words(twitter.line)
+
+length(blog.word.count)
+length(twitter.word.count)
+length(news.word.count)
+```
+As these files are large, and computationally intensive to work with, we will sample 1000 entries from the origianl files.  This should be large enough to yield statistically significant results that work for the entire population.
+```{r}
+setwd("~/Yale Papers/Data Analysis/Data Science Capstone/final/en_US")
+sBlog <- readLines("en_US.blogs.txt", 1000)
+sNews <- readLines("en_US.news.txt", 1000)
+sTwitter <- readLines("en_US.twitter.txt", 1000)
+sData <-c(sBlog, sNews, sTwitter)
+dcorpus <-Corpus(VectorSource(sData))
+```
+
+# Data Cleaning and Exploratory Analysis
+
+In order to clean the sample data file, I removed: Punctuation, Extra WhiteSpaces, Stopwords, and Numbers.  Then, I transformed the file to all lowercase for simplicity
+```{r}
+dcorpus <-tm_map(dcorpus, removePunctuation)
+dcorpus <- tm_map(dcorpus, removeNumbers)
+dcorpus <- tm_map(dcorpus, stripWhitespace)
+dcorpus <- tm_map(dcorpus, removeWords, stopwords("english"))
+dcorpus <- tm_map(dcorpus, content_transformer(tolower))
+```
+I created a Term Document Matrix in order to rank commmonly appearing words, and provide tabular output of the top words.
+```{r}
+gram1 = as.data.frame((as.matrix(TermDocumentMatrix(dcorpus))))
+gram1v <- sort(rowSums(gram1), decreasing = TRUE)
+gram1d <- data.frame(word= names(gram1v), freq=gram1v)
+gram1d[1:10,]
+```
+Then, I created a histogram using ggplot2 to visually show the findings.
+```{r}
+ggplot(gram1d[1:30,], aes(x=reorder(word,freq), y=freq)) +
+        geom_bar(stat="identity", width=0.5, fill= "blue") +
+        labs(title= "Top Most Common Words") +
+        xlab("Top Words") +ylab("Frequency") +
+        theme(axis.text.x = element_text(angle=65, vjust = 0.6))
+```
+
+# Predictive Algorithm and Shiny
+
+This is the start to a number steps that need to be taken in the Predictive/Shiny part of this project.  Some things that I need to address later are some warnings about the data that I received as I conducted my exploratory analysis.  I need to understand these better in order to ascertain the potential affect that they could have on my prediciton models down the road. In addition, I will need to extensively use N-grams and Tokenization when I will create the predictive modes, which will be an eye opening experience. 
+At the end of this capstone project, the shiny application will allow a non-data scientist to interact with the program and it will allow the user to attempt to predict the next word given a string of previous words. 

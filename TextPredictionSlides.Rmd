@@ -1,0 +1,40 @@
+---
+title: "TextPrediction App"
+author: "Ryan Obuchowski"
+date: "1/27/2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Introduction
+
+The goal of this project in the Coursera Data Science Capstone Course is to build a predicitive text model combined with the Shiny app user interface that predicts the next word as the user types a sentence.  This is similar to the way most smart phone keyboards are implemented using SwiftKey's technology.
+
+
+## Getting and Cleaning the Data
+
+### Before building our word predicition algoritm, the data must be cleaned and processed:
+1. A subset of the original data was sampled from three sources (blogs, twiiter, and news) and then merged into one dataset 
+2. Data was cleaned by stripping out white space, punctuation, numbers, and converted to lowercase.
+3. N-grams were created (Bigram, Trigram, and Quadgram)
+4. The N-grams were saved as R-compressed files (.RData files)
+
+## Text Prediction Model
+
+### The prediction model for the next word is based on the Katz Back-off algorithm. 
+1. Compressed data sets are loaded
+2. User inputs words are cleaned (get rid of white spaces, numbers, etc)
+3. For Prediction of next word, Quadgram is first used (first three words of Quadgram are the last three words of the users sentence)
+4. If no Quadgram is found, back off to trigram
+5. If no trigram is found, back off to bigram
+6. If no Bigram is found, back off to the most common word with highest frequenct. 'the' is returned
+
+## Access to the app
+The app can be accessed at: 
+https://robuchowski.shinyapps.io/TextPrediction/
+
+The Github repository for the code behind the app and the ui.R and server.R pages can be found at:
+https://github.com/robuchowski/DataSpecializationCapstone
